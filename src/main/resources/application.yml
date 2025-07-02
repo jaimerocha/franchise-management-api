@@ -1,0 +1,85 @@
+spring:
+  application:
+    name: franchise-management-api
+  profiles:
+    active: local
+  
+  # Configuración para ejecutar schema.sql automáticamente
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+  
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+---
+# Perfil local para desarrollo
+spring:
+  config:
+    activate:
+      on-profile: local
+  r2dbc:
+    url: r2dbc:mysql://localhost:3307/franchise_db
+    username: root
+    password: rootpassword
+    pool:
+      initial-size: 5
+      max-size: 20
+      max-idle-time: 30m
+      validation-query: SELECT 1
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+logging:
+  level:
+    '[com.retailchain.franchise]': DEBUG
+    '[org.springframework.r2dbc]': DEBUG
+    '[io.r2dbc.mysql]': DEBUG
+
+---
+# Perfil docker para contenedores
+spring:
+  config:
+    activate:
+      on-profile: docker
+  r2dbc:
+    url: r2dbc:mysql://mysql:3306/franchise_db
+    username: ${DB_USERNAME:franchise_user}
+    password: ${DB_PASSWORD:franchise_pass}
+    pool:
+      initial-size: 5
+      max-size: 20
+      max-idle-time: 30m
+      validation-query: SELECT 1
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+logging:
+  level:
+    '[com.retailchain.franchise]': INFO
+    '[org.springframework]': INFO
