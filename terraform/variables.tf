@@ -67,7 +67,7 @@ variable "redis_node_type" {
 variable "container_image" {
   description = "Docker image for container"
   type        = string
-  default     = "jaimerocha/franchise-management-api:1.0.0"
+  default     = "franchise-management-api:1.0.0"
 }
 
 variable "container_port" {

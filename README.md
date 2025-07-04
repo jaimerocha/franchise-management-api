@@ -63,7 +63,7 @@ cd franchise-management-api
 
 2. **Build the Docker image**
 ```bash
-docker build -f docker/Dockerfile -t jaimerocha/franchise-management-api:1.0.0 .
+docker build -f docker/Dockerfile -t franchise-management-api:1.0.0 .
 ```
 
 3. **Start all services**
@@ -83,6 +83,12 @@ docker logs franchise-api -f
 curl http://localhost:8080/actuator/health
 ```
 
+6. **Stop services and clean up**
+```bash
+# Stop all services and remove volumes
+docker compose down -v
+```
+
 ### Option 2: Local Execution with Eclipse/IntelliJ
 
 1. **Start database services**
@@ -97,6 +103,12 @@ docker compose -f docker-compose-local.yml up -d
 ```
 
 Or from your IDE by running the `FranchiseManagementApiApplication` class
+
+3. **Stop database services and clean up**
+```bash
+cd docker
+docker compose -f docker-compose-local.yml down -v
+```
 
 ## 📡 API Endpoints
 
@@ -216,14 +228,18 @@ chmod +x test-api.sh
 
 ## 🧪 Unit Testing
 
+**Prerequisites**: MySQL and Redis must be running for tests.
+
+Start test dependencies:
+```bash
+cd docker
+docker compose -f docker-compose-local.yml up -d
+cd ..
+```
+
 Run all tests:
 ```bash
 ./mvnw test
-```
-
-Run with coverage report:
-```bash
-./mvnw test jacoco:report
 ```
 
 ## 🐳 Docker
@@ -233,17 +249,31 @@ Run with coverage report:
 docker build -f docker/Dockerfile -t franchise-management-api:1.0.0 .
 ```
 
-### Push to Docker Hub (Optional - if you have your own account)
+### Run with Docker Compose
 ```bash
-# Replace 'yourusername' with your Docker Hub username
-docker tag franchise-management-api:1.0.0 yourusername/franchise-management-api:1.0.0
-docker login
-docker push yourusername/franchise-management-api:1.0.0
+cd docker
+docker compose up -d
 ```
 
-### Pull from Docker Hub (if image was pushed)
+### Stop and clean up
 ```bash
-docker pull yourusername/franchise-management-api:1.0.0
+cd docker
+docker compose down -v    # Stop services and remove volumes
+```
+
+### Push to Docker Hub (Optional)
+If you want to push to your own Docker Hub account:
+```bash
+# Tag with your username
+docker tag franchise-management-api:1.0.0 yourusername/franchise-management-api:1.0.0
+
+# Login and push
+docker login
+docker push yourusername/franchise-management-api:1.0.0
+
+# Update docker-compose.yml to use your image:
+# Change: image: franchise-management-api:1.0.0
+# To: image: yourusername/franchise-management-api:1.0.0
 ```
 
 ## ☁️ AWS Deployment
@@ -256,6 +286,8 @@ terraform init
 terraform plan
 terraform apply
 ```
+
+**Note**: AWS credentials are required to execute `terraform plan/apply`. The infrastructure code is ready for deployment when AWS access is configured.
 
 ### Resources created:
 - VPC with public and private subnets

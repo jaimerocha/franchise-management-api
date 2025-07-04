@@ -26,14 +26,13 @@ check_command() {
 # 1. Check prerequisites
 echo -e "${YELLOW}1️⃣ Checking prerequisites...${NC}"
 check_command docker
-check_command docker-compose
 check_command git
 check_command curl
 check_command jq
 
 # 2. Build Docker image
 echo -e "\n${YELLOW}2️⃣ Building Docker image...${NC}"
-if docker build -f docker/Dockerfile -t jaimerocha/franchise-management-api:1.0.0 .; then
+if docker build -f docker/Dockerfile -t franchise-management-api:1.0.0 .; then
     echo -e "${GREEN}✅ Docker image built successfully${NC}"
 else
     echo -e "${RED}❌ Failed to build Docker image${NC}"
@@ -42,6 +41,15 @@ fi
 
 # 3. Start services
 echo -e "\n${YELLOW}3️⃣ Starting services with Docker Compose...${NC}"
+
+# First, stop any existing containers
+echo "Stopping any existing containers..."
+cd docker
+docker compose down
+docker compose -f docker-compose-local.yml down
+cd ..
+
+# Now start the complete stack
 cd docker
 if docker compose up -d; then
     echo -e "${GREEN}✅ Services started${NC}"
@@ -65,7 +73,7 @@ done
 
 # 5. Show service status
 echo -e "\n${YELLOW}5️⃣ Service status:${NC}"
-docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "NAME|franchise"
 
 # 6. Test API
 echo -e "\n${YELLOW}6️⃣ Testing API health...${NC}"
@@ -95,7 +103,7 @@ echo -e "${BLUE}docker logs franchise-api -f${NC}"
 
 # 9. Show stop command
 echo -e "\n${YELLOW}9️⃣ To stop services:${NC}"
-echo -e "${BLUE}cd docker && docker compose down${NC}"
+echo -e "${BLUE}cd docker && docker compose down -v${NC}"
 
 echo -e "\n${GREEN}✨ Quick start complete!${NC}"
 echo "API is running at: http://localhost:8080"
