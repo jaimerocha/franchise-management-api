@@ -4,7 +4,7 @@ spring:
   profiles:
     active: local
   
-  # Configuración para ejecutar schema.sql automáticamente
+  # Configuration to run schema.sql automatically
   sql:
     init:
       mode: always
@@ -20,7 +20,7 @@ management:
       show-details: always
 
 ---
-# Perfil local para desarrollo
+# Local profile for development
 spring:
   config:
     activate:
@@ -53,7 +53,7 @@ logging:
     '[io.r2dbc.mysql]': DEBUG
 
 ---
-# Perfil docker para contenedores
+# Docker profile for containers
 spring:
   config:
     activate:
@@ -83,3 +83,77 @@ logging:
   level:
     '[com.retailchain.franchise]': INFO
     '[org.springframework]': INFO
+
+---
+# Production profile for AWS deployment
+spring:
+  config:
+    activate:
+      on-profile: production
+  r2dbc:
+    url: r2dbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME:franchise_db}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    pool:
+      initial-size: 10
+      max-size: 50
+      max-idle-time: 30m
+      validation-query: SELECT 1
+      max-create-connection-time: 2s
+      max-acquire-time: 10s
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+          time-between-eviction-runs: 60s
+
+# Production logging
+logging:
+  level:
+    '[com.retailchain.franchise]': INFO
+    '[org.springframework]': WARN
+    '[io.r2dbc]': WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+  file:
+    name: /var/log/franchise-api/application.log
+    max-size: 10MB
+    max-history: 30
+
+# Production management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /management
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: production
+
+# Production server configuration
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+  tomcat:
+    connection-timeout: 20s
+    threads:
+      max: 200
+      min-spare: 10
